@@ -1,9 +1,9 @@
 // Main imports
 const express = require('express');
-const app = express(); // Instância do Express
-const exprhbs = require('express-handlebars'); // Motor de templates Handlebars
-const path = require('path'); // Módulo nativo para lidar com caminhos
-const { got } = require('got'); // Cliente HTTP (se você estiver usando para chamadas externas)
+const app = express(); // Express instance, becomes the main application object
+const exprhbs = require('express-handlebars'); // Handlebars module
+const path = require('path'); // Native module that deals with paths
+const { got } = require('got'); //HTTP client for APIs
 
 // Connection with MySQL - Using localhost mysql database
 const mysql = require('mysql2');
@@ -12,10 +12,10 @@ const db = mysql.createConnection({
   user: 'root',
   password: '',
   database: 'dominioforce',
-  port: 3306
+  port: 3306,
 });
 
-// Middleware to read data from forms
+// Middleware that handles form data coming from front end http requests
 app.use(express.urlencoded({ extended: true }));
 
 // Session Management, to keep users logged in, cookies, etc.
@@ -25,18 +25,18 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,       // <--- Impede que o cookie exija HTTPS
+    secure: false,       // <--- Prevents cookie from requiring HTTPS
     httpOnly: true,
-    sameSite: 'lax'      // <--- Ajuda na persistência entre páginas
+    sameSite: 'lax'      // <--- Helps in persistence between pages
   }
 }));
 
-// Middleware to verify session in each request (for debugging purposes)
+/* Middleware to verify session in each request (only for debugging purposes)
 app.use((req, res, next) => {
   console.log('Current Session:', req.session);
   next();
 });
-
+*/
 
 // Encryption of passwords
 const bcrypt = require('bcryptjs');
@@ -47,19 +47,15 @@ const PORT = process.env.PORT || 5000;
 // Middleware to protect private routes
 function isAuthenticated(req, res, next) {
   if (req.session && req.session.userId != null) {
+    console.log(req.session.userName + ' is logged in.');
     return next();
   }
   res.redirect('/login');
 }
 
-
 // Configuration of the Handlebars as template engine
 app.engine('handlebars', exprhbs.engine());
 app.set('view engine', 'handlebars');
-
-// Welcome text for home and dashboard
-const greettingText = "Seja bem vindo ao painel de controle do seu agente de IA!";
-
 
 // Main route - Protected route of homepage dashboard
 app.get('/', isAuthenticated, (req, res) => { // Redirect to dashboard if logged in, because the line calls the isAuthenticated middleware
@@ -88,10 +84,10 @@ app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
   db.query('SELECT * FROM ai_dashboard_users WHERE email = ?', [email], async (err, results) => {
-    if (err) return res.send('Erro no banco de dados');
+    if (err) return res.send('Error in the database');
 
     if (results.length === 0) {
-      return res.send('Usuário não encontrado');
+      return res.send('User not found');
     }
 
     const user = results[0];
@@ -103,7 +99,7 @@ app.post('/login', (req, res) => {
       req.session.save(() => {
         res.redirect('/home');
       });      
-      console.log(`Usuário ${user.name} logado com sucesso!`);
+      console.log(`User ${user.name} successfully logged in!`);
     } else {
       res.send('Senha incorreta');
     }
