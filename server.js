@@ -5,7 +5,7 @@ const exprhbs = require('express-handlebars'); // Handlebars module
 const path = require('path'); // Native module that deals with paths
 const { got } = require('got'); //HTTP client for APIs
 
-// Connection with MySQL - Using localhost mysql database. When upload to VPS, create similar database and edit connection data
+// Create connection with MySQL - Using localhost mysql database. When upload to VPS, create similar database and edit connection data
 const mysql = require('mysql2');
 const db = mysql.createConnection({
   host: 'localhost',
@@ -51,12 +51,28 @@ function isAuthenticated(req, res, next) {
 app.engine('handlebars', exprhbs.engine());
 app.set('view engine', 'handlebars');
 
-// Main route - Protected route of homepage dashboard
-app.get('/', isAuthenticated, (req, res) => { // Redirect to dashboard if logged in, because the line calls the isAuthenticated middleware
-  res.render('home', { name: req.session.userName });
+// Connect to database to show campaign information on home
+db.connect(function(err) {
+  if (err) throw err;
+    console.log('Retrieving information from the database!');                    
 });
-app.get('/home', isAuthenticated, (req, res) => { // Redirect to dashboard if logged in, because the line calls the isAuthenticated middleware
-  res.render('home', { name: req.session.userName });
+
+// Main route - Protected route of homepage dashboard, including mysql information
+app.get('/', isAuthenticated, (req, res) => {
+    var sql = "SELECT * FROM campanhas WHERE emAndamento = 1";
+    db.query(sql, function(err, result, fields){
+    if (err) throw err;
+    console.log(result); // Redirect to dashboard if logged in, because the line calls the isAuthenticated middleware
+  res.render('home', { name: req.session.userName, campanhas: result });
+  });
+});
+app.get('/home', isAuthenticated, (req, res) => {
+    var sql = "SELECT * FROM campanhas WHERE emAndamento = 1";
+    db.query(sql, function(err, result, fields){
+    if (err) throw err;
+    console.log(result); // Redirect to dashboard if logged in, because the line calls the isAuthenticated middleware
+  res.render('home', { name: req.session.userName, campanhas: result });
+  });
 });
 
 // Routes - Other protected pages (example: campaigns, FAQ)
@@ -107,7 +123,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// Route to send information to N8N webhook through express.Router()
+// Route to send information to N8N webhook
 app.post('/api/enviar-campanha', async (req, res) => {
   const { tipoEmpresa, estado, cidade } = req.body;
 

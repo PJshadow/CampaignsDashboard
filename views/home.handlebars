@@ -31,15 +31,18 @@
                                         Campanha em andamento
                                     </div>
                                     <div class="card-body"<canvas id="myBarChart" width="100%" height="40">
-                                        Possibilidade de armazenar dados em mysql/redis para mostrar aqui. Sugestões:<br>
-                                        <ul>
-                                            <li>Tipo de Campanha</li>
-                                            <li>Data e Horário de Início</li>
-                                            <li>Status Atual</li>
-                                            <li>Número de Leads Alcançados</li>
-                                            <li>botão de STOP deve estar na tela da campanha</li>
-                                        </ul></canvas>
-
+                                        <br>
+                                        <div>
+                                            {{#each campanhas}}
+                                                <p>Tipo de Campanha em Andamento: {{TipoDeCampanha}}</p>
+                                                <p>Prospecto: {{TipoDeLead}}</p>
+                                                <p>Horário de Início: {{Inicio}}</p>
+                                                <p>Leads: {{leadsAlcancados}}</p>
+                                            {{else}}
+                                                <p>Nenhuma campanha ativa no momento.</p>
+                                            {{/each}}
+                                        </div>
+                                        </canvas>
                                     </div>
                                 </div>
                             </div>
