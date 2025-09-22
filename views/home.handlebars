@@ -31,17 +31,46 @@
                                         Campanha em andamento
                                     </div>
                                     <div class="card-body"<canvas id="myBarChart" width="100%" height="40">
-                                        <br>
-                                        <div>
-                                            {{#each campanhas}}
-                                                <p>Tipo de Campanha em Andamento: {{TipoDeCampanha}}</p>
-                                                <p>Tipo de Lead: {{TipoDeLead}}</p>
-                                                <p>Horário de Início: {{Inicio}}</p>
-                                                <p>Contatos feitos até o momento: {{leadsAlcancados}}</p>
-                                            {{else}}
-                                                <p>Nenhuma campanha ativa no momento.</p>
-                                            {{/each}}
+                                        <div id="campanhas-container">
+                                            <p>Carregando campanhas...</p>
                                         </div>
+                                        <script>
+                                            function carregarCampanhas() {
+                                                fetch('/api/campanhas')
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    const container = document.getElementById('campanhas-container');
+                                                    container.innerHTML = ''; // limpa conteúdo anterior
+
+                                                    if (data.length === 0) {
+                                                    container.innerHTML = '<p>Nenhuma campanha ativa no momento.</p>';
+                                                    } else {
+                                                    data.forEach(campanha => {
+                                                        const bloco = `
+                                                        <div class="campanha">
+                                                            <p><strong>Tipo de Campanha em Andamento:</strong> ${campanha.TipoDeCampanha}</p>
+                                                            <p><strong>Tipo de Lead:</strong> ${campanha.TipoDeLead}</p>
+                                                            <p><strong>Horário de Início:</strong> ${new Date(campanha.Inicio).toLocaleString()}</p>
+                                                            <p><strong>Contatos feitos até o momento:</strong> ${campanha.leadsAlcancados}</p>
+                                                        </div>
+                                                        `;
+                                                        container.innerHTML += bloco;
+                                                    });
+                                                    }
+                                                })
+                                                .catch(error => {
+                                                    console.error('Erro ao carregar campanhas:', error);
+                                                    document.getElementById('campanhas-container').innerHTML = '<p>Erro ao carregar campanhas.</p>';
+                                                });
+                                            }
+
+  // Atualiza a cada 60 segundos
+  setInterval(carregarCampanhas, 60000);
+  // Carrega imediatamente ao abrir a página
+  carregarCampanhas();
+</script>
+
+
                                         </canvas>
                                     </div>
                                 </div>

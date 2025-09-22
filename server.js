@@ -140,6 +140,18 @@ app.post('/api/enviar-campanha', async (req, res) => {
   }
 });
 
+// Route to update information to show active campaigns
+app.get('/api/campanhas', isAuthenticated, (req, res) => {
+  const sql = "SELECT * FROM campanhas WHERE emAndamento = 1";
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json({ error: 'Erro ao buscar campanhas' });
+    res.json(result); // envia os dados como JSON
+  });
+});
+
+
+
+
 
 // Public folder for static files (CSS, JS, images)
 app.use(express.static(path.join(__dirname, 'public')));
