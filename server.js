@@ -31,13 +31,6 @@ app.use(session({
   }
 }));
 
-/* Middleware to verify session in each request (only for debugging purposes)
-app.use((req, res, next) => {
-  console.log('Current Session:', req.session);
-  next();
-});
-*/
-
 // Encryption of passwords
 const bcrypt = require('bcryptjs');
 
@@ -113,25 +106,18 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// POST route to process form in dashboard (if applicable)
-app.post('/', isAuthenticated, (req, res) => {
-  const { tipoEmpresa, estado, cidade } = req.body;
-  console.log({ tipoEmpresa, estado, cidade });
-  res.send('Formulário recebido com sucesso!');
-});
-
 // Public folder for static files (CSS, JS, images)
 app.use(express.static(path.join(__dirname, 'public')));
 
 db.connect((err) => {
   if (err) {
-    console.error('Erro ao conectar ao MySQL:', err.message);
+    console.error('Error connecting to MySQL:', err.message);
     process.exit(1);
   } else {
-    console.log('Conectado ao MySQL com sucesso!');
+    console.log('Connected to MySQL!');
   }
 });
 
 
 // server startup
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
