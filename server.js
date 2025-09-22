@@ -28,8 +28,8 @@ app.get('/', (req, res) => {
     res.render('home', { text: greettingText });// Pass the variable to the template
 });
 
-app.get('/dashboard', (req, res) => {
-    res.render('dashboard');
+app.get('/campanhaProspeccao', (req, res) => {
+    res.render('campanhaProspeccao');
 });
 
 app.get('/faq', (req, res) => {
