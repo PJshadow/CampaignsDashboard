@@ -5,7 +5,7 @@ const exprhbs = require('express-handlebars'); // Handlebars module
 const path = require('path'); // Native module that deals with paths
 const { got } = require('got'); //HTTP client for APIs
 
-// Connection with MySQL - Using localhost mysql database
+// Connection with MySQL - Using localhost mysql database. When upload to VPS, create similar database and edit connection data
 const mysql = require('mysql2');
 const db = mysql.createConnection({
   host: 'localhost',
@@ -17,6 +17,7 @@ const db = mysql.createConnection({
 
 // Middleware that handles form data coming from front end http requests
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Session Management, to keep users logged in, cookies, etc.
 const session = require('express-session');
@@ -58,7 +59,7 @@ app.get('/home', isAuthenticated, (req, res) => { // Redirect to dashboard if lo
   res.render('home', { name: req.session.userName });
 });
 
-// Other protected pages (example: campaigns, FAQ)
+// Routes - Other protected pages (example: campaigns, FAQ)
 app.get('/campanhaProspeccao', isAuthenticated, (req, res) => {
   res.render('campanhaProspeccao');
 });
@@ -105,6 +106,24 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
   });
 });
+
+// Route to send information to N8N webhook through express.Router()
+app.post('/api/enviar-campanha', async (req, res) => {
+  const { tipoEmpresa, estado, cidade } = req.body;
+
+  try {
+    const response = await got.post('https://n8n.pierrejr.com/webhook/eb9f69a1-8042-4160-b52a-87288c984018', {
+      json: { tipoEmpresa, estado, cidade },
+      responseType: 'json'
+    });
+
+    res.status(200).send('Dados enviados com sucesso!');
+  } catch (error) {
+    console.error('Erro ao enviar para N8N:', error.message);
+    res.status(500).send('Erro ao processar os dados.');
+  }
+});
+
 
 // Public folder for static files (CSS, JS, images)
 app.use(express.static(path.join(__dirname, 'public')));
