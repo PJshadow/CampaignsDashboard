@@ -5,7 +5,7 @@ const exprhbs = require('express-handlebars'); // Handlebars module
 const path = require('path'); // Native module that deals with paths
 const { got } = require('got'); //HTTP client for APIs
 
-// Create connection with MySQL - Using localhost mysql database. When upload to VPS, create similar database and edit connection data
+// Create connection with MySQL - Using localhost mysql database. When upload to VPS, must create similar database and edit connection data
 const mysql = require('mysql2');
 const db = mysql.createConnection({
   host: 'localhost',
@@ -53,31 +53,34 @@ app.set('view engine', 'handlebars');
 
 // Connect to database to show campaign information on home
 db.connect(function(err) {
-  if (err) throw err;
-    console.log('Retrieving information from the database!');                    
+  if (err) {
+    throw err;
+  } else {
+    console.log('Retrieving information from the database!');
+  }                    
 });
 
 // Main route - Protected route of homepage dashboard, including mysql information
-// Define a rota para a página inicial ("/")
-// Usa o middleware isAuthenticated para garantir que o usuário esteja logado
+// Sets the route to the home page ("/")
+// Uses isAuthenticated middleware to ensure the user is logged in
 app.get('/', isAuthenticated, (req, res) => {
 
-  // Consulta SQL para buscar campanhas que estão em andamento (emAndamento = 1)
+  // SQL query to fetch campaigns that are in progress (emAndamento = 1)
   const sqlCampanhasAtivas = "SELECT * FROM campanhas WHERE emAndamento = 1";
 
-  // Consulta SQL para buscar dados que serão usados no gráfico (sem filtro de emAndamento)
+  // SQL query to fetch data that will be used in the chart (without filter emAndamento)
   const sqlGrafico = "SELECT TipoDeCampanha, leadsAlcancados, Inicio FROM campanhas";
 
-  // Executa a primeira consulta: campanhas ativas
+  // Performs the first query: campanhas ativas
   db.query(sqlCampanhasAtivas, function(err, campanhasAtivas) {
     if (err) throw err; // Se houver erro, interrompe e exibe o erro
 
-    // Executa a segunda consulta: dados completos para o gráfico
+    // Performs the second query: complete data for the chart
     db.query(sqlGrafico, function(err2, campanhasParaGrafico) {
       if (err2) throw err2; // Se houver erro, interrompe e exibe o erro
 
-      // Mapeia os resultados da segunda consulta para um formato mais simples
-      // Cada objeto terá: tipo da campanha, número de leads e data de início
+      // Maps the results of the second query to a simpler format
+      // Each object will have: campaign type, number of leads and start date
       const dadosGrafico = campanhasParaGrafico.map(campanha => ({
         tipo: campanha.TipoDeCampanha,
         leads: campanha.leadsAlcancados,
@@ -92,7 +95,7 @@ app.get('/', isAuthenticated, (req, res) => {
       res.render('home', {
         name: req.session.userName,
         campanhas: campanhasAtivas,
-        dadosGrafico: JSON.stringify(dadosGrafico)
+        dadosGrafico: JSON.stringify(dadosGrafico)// Converte o objeto para uma string JSON
       });
     });
   });
@@ -100,26 +103,27 @@ app.get('/', isAuthenticated, (req, res) => {
 
 
 
-// Define a rota para a página inicial ("/home")
-// Usa o middleware isAuthenticated para garantir que o usuário esteja logado
+// Main route - Protected route of homepage dashboard, including mysql information
+// Sets the route to the home page ("/home")
+// Uses isAuthenticated middleware to ensure the user is logged in
 app.get('/home', isAuthenticated, (req, res) => {
 
-  // Consulta SQL para buscar campanhas que estão em andamento (emAndamento = 1)
+  // SQL query to fetch campaigns that are in progress (emAndamento = 1)
   const sqlCampanhasAtivas = "SELECT * FROM campanhas WHERE emAndamento = 1";
 
-  // Consulta SQL para buscar dados que serão usados no gráfico (sem filtro de emAndamento)
+  // SQL query to fetch data that will be used in the chart (without filter emAndamento)
   const sqlGrafico = "SELECT TipoDeCampanha, leadsAlcancados, Inicio FROM campanhas";
 
-  // Executa a primeira consulta: campanhas ativas
+  // Performs the first query: campanhas ativas
   db.query(sqlCampanhasAtivas, function(err, campanhasAtivas) {
     if (err) throw err; // Se houver erro, interrompe e exibe o erro
 
-    // Executa a segunda consulta: dados completos para o gráfico
+    // Performs the second query: complete data for the chart
     db.query(sqlGrafico, function(err2, campanhasParaGrafico) {
       if (err2) throw err2; // Se houver erro, interrompe e exibe o erro
 
-      // Mapeia os resultados da segunda consulta para um formato mais simples
-      // Cada objeto terá: tipo da campanha, número de leads e data de início
+      // Maps the results of the second query to a simpler format
+      // Each object will have: campaign type, number of leads and start date
       const dadosGrafico = campanhasParaGrafico.map(campanha => ({
         tipo: campanha.TipoDeCampanha,
         leads: campanha.leadsAlcancados,
@@ -134,7 +138,7 @@ app.get('/home', isAuthenticated, (req, res) => {
       res.render('home', {
         name: req.session.userName,
         campanhas: campanhasAtivas,
-        dadosGrafico: JSON.stringify(dadosGrafico)
+        dadosGrafico: JSON.stringify(dadosGrafico)// Converte o objeto para uma string JSON
       });
     });
   });

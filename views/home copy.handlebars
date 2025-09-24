@@ -1,80 +1,131 @@
-                <main>
-                    <div class="container-fluid px-4">
-                        <h1 class="mt-4">Dashboard do {{name}}</h1>
-                        <ol class="breadcrumb mb-4">
-                            <li class="breadcrumb-item active">Painel de Controle do Agente IA e Workflows</li>
-                        </ol>
+<main> 
+    <div class="container-fluid px-4">
+        <h1 class="mt-4">Dashboard do {{name}}</h1>
+        <ul class="breadcrumb mb-4">
+            <li class="breadcrumb-item active">Painel de Controle do Agente IA e Workflows</li>
+        </ul>
 
-                        <div class="row">
-                            <div class="col-xl-6">
-                                <div class="card mb-4">
-                                    <div class="card-header">
-                                        <i class="fas fa-chart-area me-1"></i>
-                                        Leads alcançados por dia
-                                    </div>
-                                    <div class="card-body"><canvas id="myAreaChart" width="100%" height="40"></canvas></div>
-                                </div>
-                            </div>
-                            <div class="col-xl-6">
-                                <div class="card mb-4">
-                                    <div class="card-header">
-                                        <i class="fas fa-chart-bar me-1"></i>
-                                        Novos cadastros de usuários por mês
-                                    </div>
-                                    <div class="card-body"><canvas id="myBarChart" width="100%" height="40"></canvas></div>
-                                </div>
-                            </div>
-                                                        <div class="col-xl-6">
-                                <div class="card mb-4">
-                                    <div class="card-header">
-                                        <i class="fas fa-chart-area me-1"></i>
-                                        Campanha em andamento
-                                    </div>
-                                    <div class="card-body"<canvas id="myBarChart" width="100%" height="40">
-                                        <div id="campanhas-container">
-                                            <p>Carregando campanhas...</p>
-                                        </div>
-                                        <script>
-                                            function carregarCampanhas() {
-                                                fetch('/api/campanhas')
-                                                .then(response => response.json())
-                                                .then(data => {
-                                                    const container = document.getElementById('campanhas-container');
-                                                    container.innerHTML = ''; // limpa conteúdo anterior
-
-                                                    if (data.length === 0) {
-                                                    container.innerHTML = '<p>Nenhuma campanha ativa no momento.</p>';
-                                                    } else {
-                                                    data.forEach(campanha => {
-                                                        const bloco = `
-                                                        <div class="campanha">
-                                                            <p><strong>Tipo de Campanha em Andamento:</strong> ${campanha.TipoDeCampanha}</p>
-                                                            <p><strong>Tipo de Lead:</strong> ${campanha.TipoDeLead}</p>
-                                                            <p><strong>Horário de Início:</strong> ${new Date(campanha.Inicio).toLocaleString()}</p>
-                                                            <p><strong>Contatos feitos até o momento:</strong> ${campanha.leadsAlcancados}</p>
-                                                        </div>
-                                                        `;
-                                                        container.innerHTML += bloco;
-                                                    });
-                                                    }
-                                                })
-                                                .catch(error => {
-                                                    console.error('Erro ao carregar campanhas:', error);
-                                                    document.getElementById('campanhas-container').innerHTML = '<p>Erro ao carregar campanhas.</p>';
-                                                });
-                                            }
-
-  // Atualiza a cada 60 segundos
-  setInterval(carregarCampanhas, 60000);
-  // Carrega imediatamente ao abrir a página
-  carregarCampanhas();
-</script>
-
-
-                                        </canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+        <div class="row">
+            <!-- Coluna 1 -->
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-area me-1"></i>
+                        Campanha em andamento
                     </div>
-                </main>
+                    <div class="card-body">
+                        <div id="campanhas-container">
+                            <p>Carregando campanhas...</p>
+                        </div>
+                        <script>
+                            function carregarCampanhas() {
+                                fetch('/api/campanhas')
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        const container = document.getElementById('campanhas-container');
+                                        container.innerHTML = '';
+
+                                        if (data.length === 0) {
+                                            container.innerHTML = '<p>Nenhuma campanha ativa no momento.</p>';
+                                        } else {
+                                            data.forEach(campanha => {
+                                                const bloco = `
+                                                    <div class="campanha">
+                                                        <p><strong>Tipo de Campanha em Andamento:</strong> ${campanha.TipoDeCampanha}</p>
+                                                        <p><strong>Tipo de Lead:</strong> ${campanha.TipoDeLead}</p>
+                                                        <p><strong>Horário de Início:</strong> ${new Date(campanha.Inicio).toLocaleString()}</p>
+                                                        <p><strong>Contatos feitos até o momento:</strong> ${campanha.leadsAlcancados}</p>
+                                                        <p><strong>Local:</strong> ${campanha.Cidade}, ${campanha.estado}</p>
+                                                    </div>
+                                                `;
+                                                container.innerHTML += bloco;
+                                            });
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Erro ao carregar campanhas:', error);
+                                        container.innerHTML = '<p>Erro ao carregar campanhas.</p>';
+                                    });
+                            }
+
+                            setInterval(carregarCampanhas, 10000);
+                            carregarCampanhas();
+                        </script>
+                    </div>
+                </div>
+            </div>
+
+            
+
+            <!-- Coluna 2 -->
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Leads Atingidos 
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graficoLeadsPorData""></canvas>
+                            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                            <script>
+                                try {
+                                    const dados = {{{dadosGrafico}}};
+
+                                    // Gera os últimos 5 dias como rótulos
+                                    const hoje = new Date();
+                                    const ultimosCincoDias = [];
+                                    for (let i = 4; i >= 0; i--) {
+                                        const dia = new Date(hoje);
+                                        dia.setDate(hoje.getDate() - i);
+                                        const dataFormatada = dia.toLocaleDateString('pt-BR');
+                                        ultimosCincoDias.push(dataFormatada);
+                                    }
+
+                                    // Agrupa os dados por data
+                                    const agrupadoPorData = {};
+                                    dados.forEach(item => {
+                                        const dataFormatada = new Date(item.inicio).toLocaleDateString('pt-BR');
+                                        if (!agrupadoPorData[dataFormatada]) {
+                                            agrupadoPorData[dataFormatada] = 0;
+                                        }
+                                        agrupadoPorData[dataFormatada] += item.leads;
+                                    });
+
+                                    // Garante que todos os últimos 5 dias estejam presentes
+                                    const labels = ultimosCincoDias;
+                                    const valores = labels.map(data => agrupadoPorData[data] || 0);
+
+                                    const ctx = document.getElementById('graficoLeadsPorData').getContext('2d');
+                                    new Chart(ctx, {
+                                        type: 'line',
+                                        data: {
+                                            labels: labels,
+                                            datasets: [{
+                                                label: 'Total de Leads por Data de Início',
+                                                data: valores,
+                                                fill: false,
+                                                borderColor: 'rgba(54, 162, 235, 1)',
+                                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                                tension: 0.3
+                                            }]
+                                        },
+                                        options: {
+                                            responsive: true,
+                                            scales: {
+                                                y: {
+                                                    beginAtZero: true
+                                                }
+                                            }
+                                        }
+                                    });
+                                } catch (e) {
+                                    console.error("Erro ao renderizar gráfico de leads por data:", e);
+                                }
+                            </script>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

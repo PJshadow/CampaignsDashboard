@@ -58,22 +58,89 @@ db.connect(function(err) {
 });
 
 // Main route - Protected route of homepage dashboard, including mysql information
+// Define a rota para a página inicial ("/")
+// Usa o middleware isAuthenticated para garantir que o usuário esteja logado
 app.get('/', isAuthenticated, (req, res) => {
-    var sql = "SELECT * FROM campanhas WHERE emAndamento = 1";
-    db.query(sql, function(err, result, fields){
-    if (err) throw err;
-    console.log(result); // Redirect to dashboard if logged in, because the line calls the isAuthenticated middleware
-  res.render('home', { name: req.session.userName, campanhas: result });
+
+  // Consulta SQL para buscar campanhas que estão em andamento (emAndamento = 1)
+  const sqlCampanhasAtivas = "SELECT * FROM campanhas WHERE emAndamento = 1";
+
+  // Consulta SQL para buscar dados que serão usados no gráfico (sem filtro de emAndamento)
+  const sqlGrafico = "SELECT TipoDeCampanha, leadsAlcancados, Inicio FROM campanhas";
+
+  // Executa a primeira consulta: campanhas ativas
+  db.query(sqlCampanhasAtivas, function(err, campanhasAtivas) {
+    if (err) throw err; // Se houver erro, interrompe e exibe o erro
+
+    // Executa a segunda consulta: dados completos para o gráfico
+    db.query(sqlGrafico, function(err2, campanhasParaGrafico) {
+      if (err2) throw err2; // Se houver erro, interrompe e exibe o erro
+
+      // Mapeia os resultados da segunda consulta para um formato mais simples
+      // Cada objeto terá: tipo da campanha, número de leads e data de início
+      const dadosGrafico = campanhasParaGrafico.map(campanha => ({
+        tipo: campanha.TipoDeCampanha,
+        leads: campanha.leadsAlcancados,
+        inicio: campanha.Inicio
+      }));
+
+      // Renderiza o template 'home.handlebars'
+      // Envia três variáveis para o template:
+      // - name: nome do usuário logado (da sessão)
+      // - campanhas: lista de campanhas ativas (emAndamento = 1)
+      // - dadosGrafico: dados formatados para o Chart.js, convertidos em JSON
+      res.render('home', {
+        name: req.session.userName,
+        campanhas: campanhasAtivas,
+        dadosGrafico: JSON.stringify(dadosGrafico)
+      });
+    });
   });
 });
+
+
+
+// Define a rota para a página inicial ("/home")
+// Usa o middleware isAuthenticated para garantir que o usuário esteja logado
 app.get('/home', isAuthenticated, (req, res) => {
-    var sql = "SELECT * FROM campanhas WHERE emAndamento = 1";
-    db.query(sql, function(err, result, fields){
-    if (err) throw err;
-    console.log(result); // Redirect to dashboard if logged in, because the line calls the isAuthenticated middleware
-  res.render('home', { name: req.session.userName, campanhas: result });
+
+  // Consulta SQL para buscar campanhas que estão em andamento (emAndamento = 1)
+  const sqlCampanhasAtivas = "SELECT * FROM campanhas WHERE emAndamento = 1";
+
+  // Consulta SQL para buscar dados que serão usados no gráfico (sem filtro de emAndamento)
+  const sqlGrafico = "SELECT TipoDeCampanha, leadsAlcancados, Inicio FROM campanhas";
+
+  // Executa a primeira consulta: campanhas ativas
+  db.query(sqlCampanhasAtivas, function(err, campanhasAtivas) {
+    if (err) throw err; // Se houver erro, interrompe e exibe o erro
+
+    // Executa a segunda consulta: dados completos para o gráfico
+    db.query(sqlGrafico, function(err2, campanhasParaGrafico) {
+      if (err2) throw err2; // Se houver erro, interrompe e exibe o erro
+
+      // Mapeia os resultados da segunda consulta para um formato mais simples
+      // Cada objeto terá: tipo da campanha, número de leads e data de início
+      const dadosGrafico = campanhasParaGrafico.map(campanha => ({
+        tipo: campanha.TipoDeCampanha,
+        leads: campanha.leadsAlcancados,
+        inicio: campanha.Inicio
+      }));
+
+      // Renderiza o template 'home.handlebars'
+      // Envia três variáveis para o template:
+      // - name: nome do usuário logado (da sessão)
+      // - campanhas: lista de campanhas ativas (emAndamento = 1)
+      // - dadosGrafico: dados formatados para o Chart.js, convertidos em JSON
+      res.render('home', {
+        name: req.session.userName,
+        campanhas: campanhasAtivas,
+        dadosGrafico: JSON.stringify(dadosGrafico)
+      });
+    });
   });
 });
+
+
 
 // Routes - Other protected pages (example: campaigns, FAQ)
 app.get('/campanhaProspeccao', isAuthenticated, (req, res) => {
