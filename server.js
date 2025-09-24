@@ -169,6 +169,23 @@ app.get('/history', isAuthenticated, (req, res) => {
   });
 });
 
+// Route to get the list of cities for a specific state
+app.get('/api/cidades/:estado', isAuthenticated, (req, res) => {
+  const estado = req.params.estado.toUpperCase();
+
+  db.query('SELECT DISTINCT cidade FROM listadecidades WHERE estado = ?', [estado], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar cidades:', err.message);
+      return res.status(500).json({ error: 'Erro ao buscar cidades' });
+    }
+
+    const cidades = results.map(row => row.cidade);
+    res.json(cidades);
+  });
+});
+
+
+
 
 // GET route to display the login form
 app.get('/login', (req, res) => {
