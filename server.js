@@ -155,6 +155,21 @@ app.get('/faq', isAuthenticated, (req, res) => {
   res.render('faq');
 });
 
+// Route to history, with information about completed campaigns
+app.get('/history', isAuthenticated, (req, res) => {
+  const sqlCampanhasFinalizadas = "SELECT * FROM campanhas WHERE emAndamento = 0";
+
+  db.query(sqlCampanhasFinalizadas, (err, campanhasFinalizadas) => {
+    if (err) throw err;
+
+    res.render('history', {
+      name: req.session.userName,
+      campanhas: campanhasFinalizadas
+    });
+  });
+});
+
+
 // GET route to display the login form
 app.get('/login', (req, res) => {
   res.render('login');
