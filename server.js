@@ -15,6 +15,7 @@ const db = mysql.createConnection({
   port: 3306,
 });
 
+
 // Middleware that handles form data coming from front end http requests
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -22,7 +23,7 @@ app.use(express.json());
 // Session Management, to keep users logged in, cookies, etc.
 const session = require('express-session');
 app.use(session({
-  secret: 'SuperSecretKey',
+  secret: '$2b$10$/jmPnyRl6qkmHcRH.OpeGeOk5jbES9BLLpD6e4qYNYYXzLwVSAOFS',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -53,12 +54,12 @@ app.set('view engine', 'handlebars');
 
 // Connect to database to show campaign information on home
 db.connect(function(err) {
-  if (err) {
-    throw err;
-  } else {
-    console.log('Retrieving information from the database!');
-  }                    
-});
+    if (err) {
+          throw err;  }
+           else {    
+            console.log('Retrieving information from the database!');  
+          }               
+        });
 
 // Main route - Protected route of homepage dashboard, including mysql information
 // Sets the route to the home page ("/")
@@ -100,50 +101,6 @@ app.get('/', isAuthenticated, (req, res) => {
     });
   });
 });
-
-
-
-// Main route - Protected route of homepage dashboard, including mysql information
-// Sets the route to the home page ("/home")
-// Uses isAuthenticated middleware to ensure the user is logged in
-app.get('/home', isAuthenticated, (req, res) => {
-
-  // SQL query to fetch campaigns that are in progress (emAndamento = 1)
-  const sqlCampanhasAtivas = "SELECT * FROM campanhas WHERE emAndamento = 1";
-
-  // SQL query to fetch data that will be used in the chart (without filter emAndamento)
-  const sqlGrafico = "SELECT TipoDeCampanha, leadsAlcancados, Inicio FROM campanhas";
-
-  // Performs the first query: campanhas ativas
-  db.query(sqlCampanhasAtivas, function(err, campanhasAtivas) {
-    if (err) throw err; // Se houver erro, interrompe e exibe o erro
-
-    // Performs the second query: complete data for the chart
-    db.query(sqlGrafico, function(err2, campanhasParaGrafico) {
-      if (err2) throw err2; // Se houver erro, interrompe e exibe o erro
-
-      // Maps the results of the second query to a simpler format
-      // Each object will have: campaign type, number of leads and start date
-      const dadosGrafico = campanhasParaGrafico.map(campanha => ({
-        tipo: campanha.TipoDeCampanha,
-        leads: campanha.leadsAlcancados,
-        inicio: campanha.Inicio
-      }));
-
-      // Renderiza o template 'home.handlebars'
-      // Envia três variáveis para o template:
-      // - name: nome do usuário logado (da sessão)
-      // - campanhas: lista de campanhas ativas (emAndamento = 1)
-      // - dadosGrafico: dados formatados para o Chart.js, convertidos em JSON
-      res.render('home', {
-        name: req.session.userName,
-        campanhas: campanhasAtivas,
-        dadosGrafico: JSON.stringify(dadosGrafico)// Converte o objeto para uma string JSON
-      });
-    });
-  });
-});
-
 
 
 // Routes - Other protected pages (example: campaigns, FAQ)
@@ -210,7 +167,7 @@ app.post('/login', (req, res) => {
       req.session.userId = user.id;
       req.session.userName = user.name;
       req.session.save(() => {
-        res.redirect('/home');
+        res.redirect('/');
       });      
       console.log(`User ${user.name} successfully logged in!`);
     } else {
@@ -218,6 +175,8 @@ app.post('/login', (req, res) => {
     }
   });
 });
+
+
 
 // Logout route to end the session
 app.get('/logout', (req, res) => {
@@ -252,7 +211,26 @@ app.get('/api/campanhas', isAuthenticated, (req, res) => {
   });
 });
 
+// POST route to stop all active campaigns
+app.post('/stopcampaign', (req, res) => {
+  // Executes a SQL query that updates all campaigns with stop = 0, marking as stop = 1
+  db.query('UPDATE campaigncommands SET stop = 1 WHERE stop = 0', (err, result) => {
+    // If there is an error in the execution of the query, returns error 500 and displays in the console
+    if (err) {
+      console.error('Erro ao parar campanhas:', err);
+      return res.status(500).send('Erro no banco de dados');
+    }
 
+    // If no line was affected, it means that there were no active campaigns to stop
+    if (result.affectedRows === 0) {
+      return res.send('Nenhuma campanha ativa encontrada para parar');
+    }
+
+    // If campaigns have been updated, displays in the console and sends response to customer
+    console.log(`O comando de parada foi executado com sucesso!`);
+    res.send(`O comando de parada foi executado com sucesso! Espere um momento antes de iniciar uma nova campanha.`);
+  });
+});
 
 
 
@@ -267,7 +245,6 @@ db.connect((err) => {
     console.log('Connected to MySQL!');
   }
 });
-
 
 // server startup
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

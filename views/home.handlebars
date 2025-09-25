@@ -40,6 +40,32 @@
                                                 `;
                                                 container.innerHTML += bloco;
                                             });
+
+                                            // Adiciona o botão "Parar Campanhas" somente se houver campanhas
+                                            const botaoHTML = `
+                                                <div class="text-center mt-4">
+                                                    <button id="btn-parar-campanhas" class="btn btn-danger">
+                                                        Parar Campanhas
+                                                    </button>
+                                                </div>
+                                            `;
+                                            container.innerHTML += botaoHTML;
+
+                                            // Adiciona o evento ao botão
+                                            document.getElementById('btn-parar-campanhas').addEventListener('click', () => {
+                                                fetch('/stopcampaign', {
+                                                    method: 'POST'
+                                                })
+                                                .then(response => response.text())
+                                                .then(msg => {
+                                                    alert(msg);
+                                                    carregarCampanhas(); // Atualiza a lista após parar
+                                                })
+                                                .catch(error => {
+                                                    console.error('Erro ao parar campanhas:', error);
+                                                    alert('Erro ao tentar parar campanhas.');
+                                                });
+                                            });
                                         }
                                     })
                                     .catch(error => {
@@ -50,7 +76,7 @@
 
                             setInterval(carregarCampanhas, 5000);
                             carregarCampanhas();
-                        </script>
+                        </script>   
                     </div>
                 </div>
             </div>
