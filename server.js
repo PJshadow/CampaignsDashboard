@@ -42,7 +42,6 @@ const PORT = process.env.PORT || 5000;
 // Middleware to protect private routes
 function isAuthenticated(req, res, next) {
   if (req.session && req.session.userId != null) {
-    console.log(req.session.userName + ' is logged in.');
     return next();
   }
   res.redirect('/login');
@@ -147,11 +146,12 @@ app.get('/api/cidades/:estado', isAuthenticated, (req, res) => {
 // GET route to display the login form
 app.get('/login', (req, res) => {
   res.render('login');
+  console.log(`Someone's just accessed the login page!`);
 });
 
 // POST route to authenticate the user
 app.post('/login', (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body; console.log(req.body);
 
   db.query('SELECT * FROM ai_dashboard_users WHERE email = ?', [email], async (err, results) => {
     if (err) return res.send('Error in the database');

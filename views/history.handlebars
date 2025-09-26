@@ -13,6 +13,7 @@
               <th>ID</th>
               <th>Local Alvo</th>
               <th>Tipo</th>
+              <th>Pesquisa</th>
               <th>Leads</th>
               <th>Início</th>
               <th>Status</th>
@@ -24,6 +25,7 @@
                 <td>{{id}}</td>
                 <td>{{Cidade}} - {{estado}}</td>
                 <td>{{TipoDeCampanha}}</td>
+                <td>{{TipoDeLead}}</td>
                 <td>{{leadsAlcancados}}</td>
                 <td>{{Inicio}}</td>
                 <td>Finalizada</td>
@@ -39,7 +41,7 @@
 <!-- Scripts -->
 <script>
   document.querySelectorAll('#campanhasTable tbody tr').forEach(row => {
-    const cell = row.cells[4]; // 5ª coluna: Início
+    const cell = row.cells[5]; // 5ª coluna: Início
     const rawDate = new Date(cell.textContent.trim());
 
     // Formata como "dd/mm/yyyy HH:MM"

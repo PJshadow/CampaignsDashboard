@@ -1,6 +1,6 @@
 <main> 
     <div class="container-fluid px-4">
-        <h1 class="mt-4">Dashboard do {{name}}</h1>
+        <h1 class="mt-4">Bem vindo, {{name}}</h1>
         <ul class="breadcrumb mb-4">
             <li class="breadcrumb-item active">Painel de Controle do Agente IA e Workflows</li>
         </ul>
@@ -88,7 +88,7 @@
                 <div class="card mb-4">
                     <div class="card-header">
                         <i class="fas fa-chart-bar me-1"></i>
-                        Leads Atingidos 
+                        Leads Atingidos nos Últimos 5 Dias
                     </div>
                     <div class="card-body">
                         <canvas id="graficoLeadsPorData""></canvas>
@@ -170,3 +170,19 @@
         </div>
     </div>
 </main>
+<script>
+  // Script to capitalize the name
+  const name = "{{name}}";
+
+  // Function to capitalize the first letter
+  function capitalizeFirstLetter(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  // Apply in HTML element
+  document.addEventListener("DOMContentLoaded", function() {
+    const header = document.querySelector("h1.mt-4");
+    header.textContent = "Bem vindo, " + capitalizeFirstLetter(name);
+  });
+</script>
+
