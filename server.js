@@ -4,15 +4,16 @@ const app = express(); // Express instance, becomes the main application object
 const exprhbs = require('express-handlebars'); // Handlebars module
 const path = require('path'); // Native module that deals with paths
 const { got } = require('got'); //HTTP client for APIs
+require('dotenv').config(); // Environment variables, used to hide API keys and sensitive data
 
 // Create connection with MySQL - Using localhost mysql database. When upload to VPS, must create similar database and edit connection data
 const mysql = require('mysql2');
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '',
-  database: 'dominioforce',
-  port: 3306,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
 });
 
 
@@ -23,7 +24,7 @@ app.use(express.json());
 // Session Management, to keep users logged in, cookies, etc.
 const session = require('express-session');
 app.use(session({
-  secret: '$2b$10$/jmPnyRl6qkmHcRH.OpeGeOk5jbES9BLLpD6e4qYNYYXzLwVSAOFS',
+  secret: process.env.EXPRESS_SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -37,7 +38,7 @@ app.use(session({
 const bcrypt = require('bcryptjs');
 
 // server port
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5999;
 
 // Middleware to protect private routes
 function isAuthenticated(req, res, next) {
@@ -190,7 +191,7 @@ app.post('/api/enviar-campanha', async (req, res) => {
   const { tipoEmpresa, estado, cidade } = req.body;
 
   try {
-    const response = await got.post('https://n8n.pierrejr.com/webhook/eb9f69a1-8042-4160-b52a-87288c984018', {
+    const response = await got.post(process.env.N8N_WEBHOOK_1, {
       json: { tipoEmpresa, estado, cidade },
       responseType: 'json'
     });
