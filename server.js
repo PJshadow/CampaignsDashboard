@@ -9,8 +9,8 @@ require('dotenv').config(); // Environment variables, used to hide API keys and 
 // Create connection with MySQL - Using localhost mysql database. When upload to VPS, must create similar database and edit connection data
 const mysql = require('mysql2');
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
