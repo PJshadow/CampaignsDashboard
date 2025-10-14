@@ -155,7 +155,11 @@ app.post('/login', (req, res) => {
   const { email, password } = req.body; console.log(req.body);
 
   db.query('SELECT * FROM ai_dashboard_users WHERE email = ?', [email], async (err, results) => {
-    if (err) return res.send('Error in the database');
+    //if (err) return res.send('Error in the database'); Replaced by following line
+    if (err) {
+      console.error('Erro no banco de dados:', err);
+      return res.send('Erro no banco de dados');
+    }
 
     if (results.length === 0) {
       return res.send('User not found');
