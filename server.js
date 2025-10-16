@@ -38,7 +38,7 @@ app.use(session({
 const bcrypt = require('bcryptjs');
 
 // server port
-const PORT = process.env.PORT || 5999;
+const PORT = process.env.PORT;
 
 // Middleware to protect private routes
 function isAuthenticated(req, res, next) {
