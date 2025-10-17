@@ -59,12 +59,25 @@
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
+  /* Legacy Code
   $(document).ready(function () {
     $('#campanhasTable').DataTable({
       language: {
         url: 'https://cdn.datatables.net/plug-ins/2.3.4/i18n/pt-BR.json'
       },
       responsive: true
+    });
+  });
+  */
+  
+  // New Code, sorts by the first column (ID) in descending order
+  $(document).ready(function () {
+    $('#campanhasTable').DataTable({
+      language: {
+        url: 'https://cdn.datatables.net/plug-ins/2.3.4/i18n/pt-BR.json'
+      },
+      responsive: true,
+      order: [[0, 'desc']] // Sort by the first column (ID) in descending order
     });
   });
 </script>
