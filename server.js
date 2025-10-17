@@ -15,13 +15,13 @@ const db = mysql.createPool({
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+  connectionLimit: 10,  // Maximum number of connections
+  queueLimit: 0 // Maximum number of waiting connections. 0 means no limit
 });
 
 // Middleware that handles form data coming from front end http requests
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // this line of code tells our server to use the body-parser middleware to parse incoming request bodies. extended: true means that we are using the extended version of the body-parser middleware.
+app.use(express.json()); // used to parse JSON data from the request body and make it available in the req.body property of the request object.
 
 // Session Management, to keep users logged in, cookies, etc.
 const session = require('express-session');
@@ -42,7 +42,7 @@ const bcrypt = require('bcryptjs');
 // server port
 const PORT = process.env.PORT;
 
-// Middleware to protect private routes
+// Middleware to protect private routes with login
 function isAuthenticated(req, res, next) {
   if (req.session && req.session.userId != null) {
     return next();
