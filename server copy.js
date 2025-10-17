@@ -6,18 +6,16 @@ const path = require('path'); // Native module that deals with paths
 const { got } = require('got'); //HTTP client for APIs
 require('dotenv').config(); // Environment variables, used to hide API keys and sensitive data
 
-// Create MySQL connection pool to manage multiple connections and avoid timeout issues
+// Create connection with MySQL
 const mysql = require('mysql2');
-const db = mysql.createPool({
+const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
 });
+
 
 // Middleware that handles form data coming from front end http requests
 app.use(express.urlencoded({ extended: true }));
@@ -54,33 +52,58 @@ function isAuthenticated(req, res, next) {
 app.engine('handlebars', exprhbs.engine());
 app.set('view engine', 'handlebars');
 
+// Connect to database to show campaign information on home
+db.connect(function(err) {
+    if (err) {
+          throw err;  }
+           else {    
+            console.log('Retrieving information from the database!');  
+          }               
+        });
+
 // Main route - Protected route of homepage dashboard, including mysql information
+// Sets the route to the home page ("/")
+// Uses isAuthenticated middleware to ensure the user is logged in
 app.get('/', isAuthenticated, (req, res) => {
+
+  // SQL query to fetch campaigns that are in progress (emAndamento = 1)
   const sqlCampanhasAtivas = "SELECT * FROM campanhas WHERE emAndamento = 1";
+
+  // SQL query to fetch data that will be used in the chart (without filter emAndamento)
   const sqlGrafico = "SELECT TipoDeCampanha, leadsAlcancados, Inicio FROM campanhas";
 
+  // Performs the first query: campanhas ativas
   db.query(sqlCampanhasAtivas, function(err, campanhasAtivas) {
-    if (err) throw err;
+    if (err) throw err; // Se houver erro, interrompe e exibe o erro
 
+    // Performs the second query: complete data for the chart
     db.query(sqlGrafico, function(err2, campanhasParaGrafico) {
-      if (err2) throw err2;
+      if (err2) throw err2; // Se houver erro, interrompe e exibe o erro
 
+      // Maps the results of the second query to a simpler format
+      // Each object will have: campaign type, number of leads and start date
       const dadosGrafico = campanhasParaGrafico.map(campanha => ({
         tipo: campanha.TipoDeCampanha,
         leads: campanha.leadsAlcancados,
         inicio: campanha.Inicio
       }));
 
+      // Renderiza o template 'home.handlebars'
+      // Envia três variáveis para o template:
+      // - name: nome do usuário logado (da sessão)
+      // - campanhas: lista de campanhas ativas (emAndamento = 1)
+      // - dadosGrafico: dados formatados para o Chart.js, convertidos em JSON
       res.render('home', {
         name: req.session.userName,
         campanhas: campanhasAtivas,
-        dadosGrafico: JSON.stringify(dadosGrafico)
+        dadosGrafico: JSON.stringify(dadosGrafico)// Converte o objeto para uma string JSON
       });
     });
   });
 });
 
-// Routes - Other protected pages
+
+// Routes - Other protected pages (example: campaigns, FAQ)
 app.get('/campanhaProspeccao', isAuthenticated, (req, res) => {
   res.render('campanhaProspeccao');
 });
@@ -89,6 +112,7 @@ app.get('/faq', isAuthenticated, (req, res) => {
   res.render('faq');
 });
 
+// Route to history, with information about completed campaigns
 app.get('/history', isAuthenticated, (req, res) => {
   const sqlCampanhasFinalizadas = "SELECT * FROM campanhas WHERE emAndamento = 0";
 
@@ -102,6 +126,7 @@ app.get('/history', isAuthenticated, (req, res) => {
   });
 });
 
+// Route to get the list of cities for a specific state
 app.get('/api/cidades/:estado', isAuthenticated, (req, res) => {
   const estado = req.params.estado.toUpperCase();
 
@@ -116,6 +141,9 @@ app.get('/api/cidades/:estado', isAuthenticated, (req, res) => {
   });
 });
 
+
+
+
 // GET route to display the login form
 app.get('/login', (req, res) => {
   res.render('login');
@@ -127,6 +155,7 @@ app.post('/login', (req, res) => {
   const { email, password } = req.body; console.log(req.body);
 
   db.query('SELECT * FROM ai_dashboard_users WHERE email = ?', [email], async (err, results) => {
+    //if (err) return res.send('Error in the database'); Replaced by following line
     if (err) {
       console.error('Erro no banco de dados:', err);
       return res.send('Erro no banco de dados');
@@ -151,6 +180,8 @@ app.post('/login', (req, res) => {
     }
   });
 });
+
+
 
 // Logout route to end the session
 app.get('/logout', (req, res) => {
@@ -181,29 +212,44 @@ app.get('/api/campanhas', isAuthenticated, (req, res) => {
   const sql = "SELECT * FROM campanhas WHERE emAndamento = 1";
   db.query(sql, (err, result) => {
     if (err) return res.status(500).json({ error: 'Erro ao buscar campanhas' });
-    res.json(result);
+    res.json(result); // envia os dados como JSON
   });
 });
 
 // POST route to stop all active campaigns
 app.post('/stopcampaign', (req, res) => {
+  // Executes a SQL query that updates all campaigns with stop = 0, marking as stop = 1
   db.query('UPDATE campaigncommands SET stop = 1 WHERE stop = 0', (err, result) => {
+    // If there is an error in the execution of the query, returns error 500 and displays in the console
     if (err) {
       console.error('Erro ao parar campanhas:', err);
       return res.status(500).send('Erro no banco de dados');
     }
 
+    // If no line was affected, it means that there were no active campaigns to stop
     if (result.affectedRows === 0) {
       return res.send('Nenhuma campanha ativa encontrada para parar');
     }
 
+    // If campaigns have been updated, displays in the console and sends response to customer
     console.log(`O comando de parada foi executado com sucesso!`);
     res.send(`O comando de parada foi executado com sucesso! Espere um momento antes de iniciar uma nova campanha.`);
   });
 });
 
+
+
 // Public folder for static files (CSS, JS, images)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Server startup
+db.connect((err) => {
+  if (err) {
+    console.error('Error connecting to MySQL:', err.message);
+    process.exit(1);
+  } else {
+    console.log('Connected to MySQL!');
+  }
+});
+
+// server startup
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
