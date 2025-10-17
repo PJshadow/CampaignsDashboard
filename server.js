@@ -30,7 +30,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true,  
+    secure: false,  
     httpOnly: true,
     sameSite: 'lax'      // <--- Helps in persistence between pages
   }
