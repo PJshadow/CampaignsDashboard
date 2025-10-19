@@ -89,6 +89,11 @@ app.get('/faq', isAuthenticated, (req, res) => {
   res.render('faq');
 });
 
+app.get('/prospection-success', isAuthenticated, (req, res) => {
+  res.render('prospection-success');
+}
+)
+
 app.get('/history', isAuthenticated, (req, res) => {
   const sqlCampanhasFinalizadas = "SELECT * FROM campanhas WHERE emAndamento = 0";
 
@@ -161,7 +166,7 @@ app.get('/logout', (req, res) => {
 
 // Route to send information to N8N webhook
 app.post('/api/enviar-campanha', async (req, res) => {
-  const { tipoEmpresa, estado, cidade } = req.body;
+  const { tipoEmpresa, estado, cidade } = req.body; // destructure the request body
 
   try {
     const response = await got.post(process.env.N8N_WEBHOOK_1, {
@@ -169,7 +174,8 @@ app.post('/api/enviar-campanha', async (req, res) => {
       responseType: 'json'
     });
 
-    res.status(200).send('Dados enviados com sucesso!');
+    //res.status(200).send('Dados enviados com sucesso!');
+    res.redirect('/prospection-success');
   } catch (error) {
     console.error('Erro ao enviar para N8N:', error.message);
     res.status(500).send('Erro ao processar os dados.');
