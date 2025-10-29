@@ -127,7 +127,7 @@ app.get('/login', (req, res) => {
   console.log(`Someone's just accessed the login page!`);
 });
 
-/* DEPRECATED OLD POST route to authenticate the user
+// POST route to authenticate the user
 app.post('/login', (req, res) => {
   const { email, password } = req.body; console.log(req.body);
 
@@ -155,49 +155,7 @@ app.post('/login', (req, res) => {
       res.send('Senha incorreta');
     }
   });
-}); 
-*/
-
-// NEW POST route to authenticate the user
-app.post('/login', (req, res) => {
-  const { email, password, remember } = req.body; // Captura o checkbox "remember"
-  console.log(req.body);
-
-  db.query('SELECT * FROM ai_dashboard_users WHERE email = ?', [email], async (err, results) => {
-    if (err) {
-      console.error('Erro no banco de dados:', err);
-      return res.send('Erro no banco de dados');
-    }
-
-    if (results.length === 0) {
-      return res.send('Usuário não encontrado');
-    }
-
-    const user = results[0];
-    const match = await bcrypt.compare(password, user.password);
-
-    if (match) {
-      req.session.userId = user.id;
-      req.session.userName = user.name;
-
-      // Define tempo de vida do cookie se "remember" estiver marcado
-      if (remember) {
-        req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 dias
-      } else {
-        req.session.cookie.expires = false; // Expira ao fechar o navegador
-      }
-
-      req.session.save(() => {
-        res.redirect('/');
-      });
-
-      console.log(`Usuário ${user.name} logado com sucesso!`);
-    } else {
-      res.send('Senha incorreta');
-    }
-  });
 });
-
 
 // Logout route to end the session
 app.get('/logout', (req, res) => {
