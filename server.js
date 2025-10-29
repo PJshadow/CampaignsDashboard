@@ -1,6 +1,7 @@
 // Main imports
 const express = require('express');
 const app = express(); // Express instance, becomes the main application object
+app.set('trust proxy', 1); // Trust reverse proxy (Nginx, etc.)
 const exprhbs = require('express-handlebars'); // Handlebars module
 const path = require('path'); // Native module that deals with paths
 const { got } = require('got'); //HTTP client for APIs
@@ -30,7 +31,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, /*process.env.COOKIE_SECURE,*/  
+    secure: true, /*process.env.COOKIE_SECURE,*/  //use false for local development and true for production!
     httpOnly: true,
     sameSite: 'lax'      // <--- Helps in persistence between pages
   }
