@@ -72,6 +72,8 @@ app.get('/', isAuthenticated, (req, res) => {
         inicio: campanha.Inicio
       }));
 
+      console.log('Acesso à página Home');
+
       res.render('home', {
         name: req.session.userName,
         campanhas: campanhasAtivas,
@@ -83,17 +85,29 @@ app.get('/', isAuthenticated, (req, res) => {
 
 // Routes - Other protected pages
 app.get('/campanhaProspeccao', isAuthenticated, (req, res) => {
+  console.log('Acesso à página campanhaProspeccao');
   res.render('campanhaProspeccao');
 });
 
 app.get('/faq', isAuthenticated, (req, res) => {
+  console.log('Acesso à página faq');
   res.render('faq');
 });
 
+app.get('/prospection-error', isAuthenticated, (req, res) => {
+  console.log('Acesso à página prospection-error');
+  res.render('prospection-error');
+});
+
+app.get('/prospection-typeError', isAuthenticated, (req, res) => {
+  console.log('Acesso à página prospection-typeError');
+  res.render('prospection-typeError');
+});
+
 app.get('/prospection-success', isAuthenticated, (req, res) => {
+  console.log('Acesso à página prospection-success');
   res.render('prospection-success');
-}
-)
+});
 
 app.get('/history', isAuthenticated, (req, res) => {
   const sqlCampanhasFinalizadas = "SELECT * FROM campanhas WHERE emAndamento = 0";
@@ -101,6 +115,8 @@ app.get('/history', isAuthenticated, (req, res) => {
   db.query(sqlCampanhasFinalizadas, (err, campanhasFinalizadas) => {
     if (err) throw err;
 
+    console.log('Acesso à página history');
+    
     res.render('history', {
       name: req.session.userName,
       campanhas: campanhasFinalizadas
@@ -125,8 +141,8 @@ app.get('/api/cidades/:estado', isAuthenticated, (req, res) => {
 
 // GET route to display the login form
 app.get('/login', (req, res) => {
+  console.log('Acesso à página login');
   res.render('login');
-  console.log(`Someone's just accessed the login page!`);
 });
 
 /* DEPRECATED OLD POST route to authenticate the user
@@ -203,6 +219,7 @@ app.post('/login', (req, res) => {
 
 // Logout route to end the session
 app.get('/logout', (req, res) => {
+  console.log('Acesso à página logout');
   req.session.destroy(() => {
     res.redirect('/');
   });
@@ -236,7 +253,9 @@ app.post('/api/enviar-campanha', async (req, res) => {
   } else if (baseText === 'websites') {
     webhookUrl = process.env.N8N_WEBHOOK_2;
   } else {
-    return res.status(400).send('Tipo de campanha inválido.');
+    console.error('Tipo de campanha inválido.');
+    // return res.status(400).send('Tipo de campanha inválido.'); // Padrão!! Se der erro, descomentar esta linha e apagar a nova
+    res.redirect('/prospection-typeError');
   }
 
   try {
@@ -246,10 +265,12 @@ app.post('/api/enviar-campanha', async (req, res) => {
     });
 
     // res.status(200).send('Dados enviados com sucesso!'); // Padrão!! Se der erro, descomentar esta linha e apagar a nova
+    console.log('Uma campanha de prospecção foi iniciada.')
     res.redirect('/prospection-success');
   } catch (error) {
     console.error('Erro ao enviar para N8N:', error.message);
-    res.status(500).send('Erro ao processar os dados.');
+    // res.status(500).send('Erro ao processar os dados.'); // Padrão!! Se der erro, descomentar esta linha e apagar a nova
+    res.redirect('/prospection-error');
   }
 });
 
