@@ -31,7 +31,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true, /*process.env.COOKIE_SECURE,*/  //use false for local development and true for production!
+    secure: true,  //use false for local development and true for production!
     httpOnly: true,
     sameSite: 'lax'      // <--- Helps in persistence between pages
   }
@@ -108,6 +108,7 @@ app.get('/history', isAuthenticated, (req, res) => {
   });
 });
 
+// GET route to fetch unique cities for a given state
 app.get('/api/cidades/:estado', isAuthenticated, (req, res) => {
   const estado = req.params.estado.toUpperCase();
 
@@ -207,9 +208,9 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// Route to send information to N8N webhook
+/* DEPRECATED - Route to send information to N8N webhook
 app.post('/api/enviar-campanha', async (req, res) => {
-  const { tipoEmpresa, estado, cidade } = req.body; // destructure the request body
+  const { tipoEmpresa, estado, cidade, baseText } = req.body; // destructure the request body
 
   try {
     const response = await got.post(process.env.N8N_WEBHOOK_1, {
@@ -223,7 +224,34 @@ app.post('/api/enviar-campanha', async (req, res) => {
     console.error('Erro ao enviar para N8N:', error.message);
     res.status(500).send('Erro ao processar os dados.');
   }
+}); */
+// Route to send information to the correct N8N webhook
+app.post('/api/enviar-campanha', async (req, res) => {
+  const { tipoEmpresa, estado, cidade, baseText } = req.body;
+
+  // Define o webhook com base no valor de baseText
+  let webhookUrl;
+  if (baseText === 'AIprospection') {
+    webhookUrl = process.env.N8N_WEBHOOK_1;
+  } else if (baseText === 'websites') {
+    webhookUrl = process.env.N8N_WEBHOOK_2;
+  } else {
+    return res.status(400).send('Tipo de campanha inválido.');
+  }
+
+  try {
+    const response = await got.post(webhookUrl, {
+      json: { tipoEmpresa, estado, cidade },
+      responseType: 'json'
+    });
+
+    res.status(200).send('Dados enviados com sucesso!');
+  } catch (error) {
+    console.error('Erro ao enviar para N8N:', error.message);
+    res.status(500).send('Erro ao processar os dados.');
+  }
 });
+
 
 // Route to update information to show active campaigns
 app.get('/api/campanhas', isAuthenticated, (req, res) => {
