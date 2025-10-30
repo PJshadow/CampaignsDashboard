@@ -245,7 +245,8 @@ app.post('/api/enviar-campanha', async (req, res) => {
       responseType: 'json'
     });
 
-    res.status(200).send('Dados enviados com sucesso!');
+    // res.status(200).send('Dados enviados com sucesso!'); // Padrão!! Se der erro, descomentar esta linha e apagar a nova
+    res.redirect('/prospection-success');
   } catch (error) {
     console.error('Erro ao enviar para N8N:', error.message);
     res.status(500).send('Erro ao processar os dados.');
