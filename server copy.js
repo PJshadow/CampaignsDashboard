@@ -31,7 +31,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true,  //use false for local development and true for production!
+    secure: false,  //use false for local development and true for production!
     httpOnly: true,
     sameSite: 'lax'      // <--- Helps in persistence between pages
   }
@@ -289,15 +289,15 @@ app.post('/stopcampaign', (req, res) => {
   db.query('UPDATE campaigncommands SET stop = 1 WHERE stop = 0', (err, result) => {
     if (err) {
       console.error('Erro ao parar campanhas:', err);
-      return res.status(500).send('Erro no banco de dados. Entre em contato com o suporte.');
+      return res.status(500).send('Erro no banco de dados');
     }
 
     if (result.affectedRows === 0) {
-      return res.send('O comando de parada já foi enviado, pode ser necessário aguardar alguns minutos até o encerramento da campanha.');
+      return res.send('Nenhuma campanha ativa encontrada para parar');
     }
 
-    console.log(`O comando de parada de campanha foi executado`);
-    res.send(`O comando de parada foi enviado com sucesso! Aguarde alguns minutos até o encerramento da campanha.`);
+    console.log(`O comando de parada foi executado com sucesso!`);
+    res.send(`O comando de parada foi executado com sucesso! Espere um momento antes de iniciar uma nova campanha.`);
   });
 });
 

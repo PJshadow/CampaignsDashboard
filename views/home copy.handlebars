@@ -45,7 +45,7 @@
                                             const botaoHTML = `
                                                 <div class="text-center mt-4">
                                                     <button id="btn-parar-campanhas" class="btn btn-danger">
-                                                        Parar Campanha
+                                                        Parar Campanhas
                                                     </button>
                                                 </div>
                                             `;
@@ -63,14 +63,14 @@
                                                 })
                                                 .catch(error => {
                                                     console.error('Erro ao parar campanhas:', error);
-                                                    alert('Erro ao tentar parar campanhas. Entre em contato com o suporte.');
+                                                    alert('Erro ao tentar parar campanhas.');
                                                 });
                                             });
                                         }
                                     })
                                     .catch(error => {
                                         console.error('Erro ao carregar campanhas:', error);
-                                        container.innerHTML = '<p>Erro ao carregar campanhas. Entre em contato com o suporte.</p>';
+                                        container.innerHTML = '<p>Erro ao carregar campanhas.</p>';
                                     });
                             }
 
