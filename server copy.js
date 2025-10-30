@@ -286,7 +286,7 @@ app.get('/api/campanhas', isAuthenticated, (req, res) => {
 
 // POST route to stop all active campaigns
 app.post('/stopcampaign', (req, res) => {
-  db.query('UPDATE campanhas SET emAndamento = 0 WHERE emAndamento = 1', (err, result) => {
+  db.query('UPDATE campaigncommands SET stop = 1 WHERE stop = 0', (err, result) => {
     if (err) {
       console.error('Erro ao parar campanhas:', err);
       return res.status(500).send('Erro no banco de dados. Entre em contato com o suporte.');
