@@ -200,7 +200,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// DEPRECATED - POST route to send data to N8N
+/* DEPRECATED - POST route to send data to N8N
 app.post('/api/enviar-campanha', async (req, res) => {
   const { tipoEmpresa, estado, cidade, baseText } = req.body;
 
@@ -230,7 +230,7 @@ app.post('/api/enviar-campanha', async (req, res) => {
     // res.status(500).send('Erro ao processar os dados.'); // Padrão!! Se der erro, descomentar esta linha e apagar a nova
     res.redirect('/prospection-error');
   }
-});
+}); */
 
 // POST route to send data to N8N
 app.post('/api/enviar-campanha', async (req, res) => {
