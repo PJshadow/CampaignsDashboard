@@ -233,16 +233,16 @@ app.post('/api/enviar-campanha', async (req, res) => {
 }); */
 
 // POST route to send data to N8N
-app.post('/api/enviar-campanha', async (req, res) => {
+app.post('/api/enviar-campanha', (req, res) => {
   const { tipoEmpresa, estado, cidade, baseText } = req.body;
 
-  try {
-    // Verifica quantas campanhas estão em andamento
-    const [rows] = await db.execute(`
-      SELECT COUNT(*) AS total FROM campanhas WHERE emAndamento = 1
-    `);
+  db.query('SELECT COUNT(*) AS total FROM campanhas WHERE emAndamento = 1', (err, results) => {
+    if (err) {
+      console.error('Erro ao consultar o banco de dados:', err.message);
+      return res.redirect('/prospection-error');
+    }
 
-    const campanhasAtivas = rows[0].total;
+    const campanhasAtivas = results[0].total;
     const limiteCampanhas = parseInt(process.env.NUMBER_OF_CAMPAIGNS, 10);
 
     if (campanhasAtivas >= limiteCampanhas) {
@@ -262,18 +262,19 @@ app.post('/api/enviar-campanha', async (req, res) => {
     }
 
     // Envia os dados para o N8N
-    await got.post(webhookUrl, {
+    got.post(webhookUrl, {
       json: { tipoEmpresa, estado, cidade },
       responseType: 'json'
+    }).then(() => {
+      console.log('Uma campanha de prospecção foi iniciada.');
+      res.redirect('/prospection-success');
+    }).catch(error => {
+      console.error('Erro ao enviar para N8N:', error.message);
+      res.redirect('/prospection-error');
     });
-
-    console.log('Uma campanha de prospecção foi iniciada.');
-    res.redirect('/prospection-success');
-  } catch (error) {
-    console.error('Erro ao processar a campanha:', error.message);
-    res.redirect('/prospection-error');
-  }
+  });
 });
+
 
 
 
