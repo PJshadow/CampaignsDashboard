@@ -104,6 +104,11 @@ app.get('/prospection-typeError', isAuthenticated, (req, res) => {
   res.render('prospection-typeError');
 });
 
+app.get('/prospection-limitError', isAuthenticated, (req, res) => {
+  console.log('Acesso à página prospection-limitError');
+  res.render('prospection-limitError');
+});
+
 app.get('/prospection-success', isAuthenticated, (req, res) => {
   console.log('Acesso à página prospection-success');
   res.render('prospection-success');
@@ -145,36 +150,6 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
-/* DEPRECATED OLD POST route to authenticate the user
-app.post('/login', (req, res) => {
-  const { email, password } = req.body; console.log(req.body);
-
-  db.query('SELECT * FROM ai_dashboard_users WHERE email = ?', [email], async (err, results) => {
-    if (err) {
-      console.error('Erro no banco de dados:', err);
-      return res.send('Erro no banco de dados');
-    }
-
-    if (results.length === 0) {
-      return res.send('User not found');
-    }
-
-    const user = results[0];
-    const match = await bcrypt.compare(password, user.password);
-
-    if (match) {
-      req.session.userId = user.id;
-      req.session.userName = user.name;
-      req.session.save(() => {
-        res.redirect('/');
-      });      
-      console.log(`User ${user.name} successfully logged in!`);
-    } else {
-      res.send('Senha incorreta');
-    }
-  });
-}); 
-*/
 
 // NEW POST route to authenticate the user
 app.post('/login', (req, res) => {
@@ -225,24 +200,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
-/* DEPRECATED - Route to send information to N8N webhook
-app.post('/api/enviar-campanha', async (req, res) => {
-  const { tipoEmpresa, estado, cidade, baseText } = req.body; // destructure the request body
-
-  try {
-    const response = await got.post(process.env.N8N_WEBHOOK_1, {
-      json: { tipoEmpresa, estado, cidade },
-      responseType: 'json'
-    });
-
-    res.status(200).send('Dados enviados com sucesso!');
-    //res.redirect('/prospection-success');
-  } catch (error) {
-    console.error('Erro ao enviar para N8N:', error.message);
-    res.status(500).send('Erro ao processar os dados.');
-  }
-}); */
-// Route to send information to the correct N8N webhook
+// DEPRECATED - POST route to send data to N8N
 app.post('/api/enviar-campanha', async (req, res) => {
   const { tipoEmpresa, estado, cidade, baseText } = req.body;
 
@@ -273,6 +231,50 @@ app.post('/api/enviar-campanha', async (req, res) => {
     res.redirect('/prospection-error');
   }
 });
+
+// POST route to send data to N8N
+app.post('/api/enviar-campanha', async (req, res) => {
+  const { tipoEmpresa, estado, cidade, baseText } = req.body;
+
+  try {
+    // Verifica quantas campanhas estão em andamento
+    const [rows] = await db.execute(`
+      SELECT COUNT(*) AS total FROM campanhas WHERE emAndamento = 1
+    `);
+
+    const campanhasAtivas = rows[0].total;
+    const limiteCampanhas = parseInt(process.env.NUMBER_OF_CAMPAIGNS, 10);
+
+    if (campanhasAtivas >= limiteCampanhas) {
+      console.warn(`Limite de ${limiteCampanhas} campanhas simultâneas atingido.`);
+      return res.redirect('/prospection-limitError');
+    }
+
+    // Define o webhook com base no valor de baseText
+    let webhookUrl;
+    if (baseText === 'AIprospection') {
+      webhookUrl = process.env.N8N_WEBHOOK_1;
+    } else if (baseText === 'websites') {
+      webhookUrl = process.env.N8N_WEBHOOK_2;
+    } else {
+      console.error('Tipo de campanha inválido.');
+      return res.redirect('/prospection-typeError');
+    }
+
+    // Envia os dados para o N8N
+    await got.post(webhookUrl, {
+      json: { tipoEmpresa, estado, cidade },
+      responseType: 'json'
+    });
+
+    console.log('Uma campanha de prospecção foi iniciada.');
+    res.redirect('/prospection-success');
+  } catch (error) {
+    console.error('Erro ao processar a campanha:', error.message);
+    res.redirect('/prospection-error');
+  }
+});
+
 
 
 // Route to update information to show active campaigns
