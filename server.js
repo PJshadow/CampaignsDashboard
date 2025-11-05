@@ -1,3 +1,5 @@
+// 
+
 // Main imports
 const express = require('express');
 const app = express(); // Express instance, becomes the main application object
@@ -31,7 +33,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true,  //use false for local development and true for production!
+    secure: false,  //use false for local development and true for production!
     httpOnly: true,
     sameSite: 'lax'      // <--- Helps in persistence between pages
   }
