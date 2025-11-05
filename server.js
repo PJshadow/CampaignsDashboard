@@ -1,4 +1,4 @@
-// 
+// Never forget to set cookie to secure:true before deploying to production! While developing, set it to false
 
 // Main imports
 const express = require('express');
@@ -33,7 +33,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,  //use false for local development and true for production!
+    secure: true,  //use false for local development and true for production!
     httpOnly: true,
     sameSite: 'lax'      // <--- Helps in persistence between pages
   }

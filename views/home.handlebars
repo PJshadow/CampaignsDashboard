@@ -1,6 +1,6 @@
 <main> 
     <div class="container-fluid px-4">
-        <h1 class="mt-4">Bem vindo, {{name}}</h1>
+        <h2 class="mt-4">Bem vindo, {{name}}</h2>
         <ul class="breadcrumb mb-4">
             <li class="breadcrumb-item active">Painel de Controle do Agente IA e Workflows</li>
         </ul>
@@ -8,7 +8,7 @@
         <div class="row">
             <!-- Coluna 1 -->
             <div class="col-sm-6 col-md-4">
-                <div class="card mb-4">
+                <div class="card mb-4 shadow-sm">
                     <div class="card-header">
                         <i class="fas fa-chart-area me-1"></i>
                         Campanha em andamento
@@ -85,13 +85,13 @@
 
             <!-- Coluna 2 -->
             <div class="col-sm-6 col-md-4">
-                <div class="card mb-4">
+                <div class="card mb-4 shadow-sm">
                     <div class="card-header">
                         <i class="fas fa-chart-bar me-1"></i>
                         Leads Atingidos nos Últimos 5 Dias
                     </div>
                     <div class="card-body">
-                        <canvas id="graficoLeadsPorData""></canvas>
+                        <canvas id="graficoLeadsPorData"></canvas>
                             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                             <script>
                                 let chartInstance;
