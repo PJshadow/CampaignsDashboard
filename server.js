@@ -202,39 +202,13 @@ app.get('/logout', (req, res) => {
   });
 });
 
-/* DEPRECATED - POST route to send data to N8N
-app.post('/api/enviar-campanha', async (req, res) => {
-  const { tipoEmpresa, estado, cidade, baseText } = req.body;
 
-  // Define o webhook com base no valor de baseText
-  let webhookUrl;
-  if (baseText === 'AIprospection') {
-    webhookUrl = process.env.N8N_WEBHOOK_1;
-  } else if (baseText === 'websites') {
-    webhookUrl = process.env.N8N_WEBHOOK_2;
-  } else {
-    console.error('Tipo de campanha inválido.');
-    // return res.status(400).send('Tipo de campanha inválido.'); // Padrão!! Se der erro, descomentar esta linha e apagar a nova
-    res.redirect('/prospection-typeError');
-  }
 
-  try {
-    const response = await got.post(webhookUrl, {
-      json: { tipoEmpresa, estado, cidade },
-      responseType: 'json'
-    });
 
-    // res.status(200).send('Dados enviados com sucesso!'); // Padrão!! Se der erro, descomentar esta linha e apagar a nova
-    console.log('Uma campanha de prospecção foi iniciada.')
-    res.redirect('/prospection-success');
-  } catch (error) {
-    console.error('Erro ao enviar para N8N:', error.message);
-    // res.status(500).send('Erro ao processar os dados.'); // Padrão!! Se der erro, descomentar esta linha e apagar a nova
-    res.redirect('/prospection-error');
-  }
-}); */
 
-// POST route to send data to N8N
+// CAMPAIGNS CONTROL SECTION
+
+// POST route to start campaign on N8N
 app.post('/api/enviar-campanha', (req, res) => {
   const { tipoEmpresa, estado, cidade, baseText } = req.body;
 
@@ -277,19 +251,7 @@ app.post('/api/enviar-campanha', (req, res) => {
   });
 });
 
-
-
-
-// Route to update information to show active campaigns
-app.get('/api/campanhas', isAuthenticated, (req, res) => {
-  const sql = "SELECT * FROM campanhas WHERE emAndamento = 1";
-  db.query(sql, (err, result) => {
-    if (err) return res.status(500).json({ error: 'Erro ao buscar campanhas' });
-    res.json(result);
-  });
-});
-
-// POST route to stop all active campaigns
+// POST route to stop all active campaigns on N8N
 app.post('/stopcampaign', (req, res) => {
   db.query('UPDATE campanhas SET emAndamento = 0 WHERE emAndamento = 1', (err, result) => {
     if (err) {
@@ -305,6 +267,56 @@ app.post('/stopcampaign', (req, res) => {
     res.send(`O comando de parada foi enviado com sucesso! Aguarde alguns minutos até o encerramento da campanha.`);
   });
 });
+
+
+
+// POST route to pause all active campaigns on N8N
+app.post('/pausecampaign', (req, res) => {
+  db.query('UPDATE campanhas SET emAndamento = 2 WHERE emAndamento = 1', (err, result) => {
+    if (err) {
+      console.error('Erro ao pausar campanhas:', err);
+      return res.status(500).send('Erro no banco de dados. Entre em contato com o suporte.');
+    }
+
+    if (result.affectedRows === 0) {
+      return res.send('O comando de pausa já foi enviado ou não há campanhas ativas no momento.');
+    }
+
+    console.log(`O comando de pausa de campanha foi executado`);
+    res.send(`O comando de pausa foi enviado com sucesso! As campanhas serão pausadas em breve.`);
+  });
+});
+
+// POST route to resume paused campaigns on N8N
+app.post('/resumecampaign', (req, res) => {
+  db.query('UPDATE campanhas SET emAndamento = 1 WHERE emAndamento = 2', (err, result) => {
+    if (err) {
+      console.error('Erro ao retomar campanhas:', err);
+      return res.status(500).send('Erro no banco de dados. Entre em contato com o suporte.');
+    }
+
+    if (result.affectedRows === 0) {
+      return res.send('Não há campanhas pausadas para retomar no momento.');
+    }
+
+    console.log(`O comando de retomada de campanha foi executado`);
+    res.send(`Campanhas retomadas com sucesso!`);
+  });
+});
+
+
+
+// Route to update information to show active campaigns
+app.get('/api/campanhas', isAuthenticated, (req, res) => {
+  const sql = "SELECT * FROM campanhas WHERE emAndamento = 1";
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json({ error: 'Erro ao buscar campanhas' });
+    res.json(result);
+  });
+});
+
+// END OF CAMPAIGNS CONTROL SECTION
+
 
 // Public folder for static files (CSS, JS, images)
 app.use(express.static(path.join(__dirname, 'public')));

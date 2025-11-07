@@ -41,7 +41,9 @@
                                                 container.innerHTML += bloco;
                                             });
 
-                                            // Adiciona o botão "Parar Campanhas" somente se houver campanhas
+
+
+                                            // Adds the "Stop Campaigns" button only if there are campaigns
                                             const botaoHTML = `
                                                 <div class="text-center mt-4">
                                                     <button id="btn-parar-campanhas" class="btn btn-danger">
@@ -51,7 +53,7 @@
                                             `;
                                             container.innerHTML += botaoHTML;
 
-                                            // Adiciona o evento ao botão
+                                            // Add event to button
                                             document.getElementById('btn-parar-campanhas').addEventListener('click', () => {
                                                 fetch('/stopcampaign', {
                                                     method: 'POST'
@@ -59,13 +61,51 @@
                                                 .then(response => response.text())
                                                 .then(msg => {
                                                     alert(msg);
-                                                    carregarCampanhas(); // Atualiza a lista após parar
+                                                    carregarCampanhas(); // Updates the list after stopping
                                                 })
                                                 .catch(error => {
                                                     console.error('Erro ao parar campanhas:', error);
                                                     alert('Erro ao tentar parar campanhas. Entre em contato com o suporte.');
                                                 });
                                             });
+
+
+
+                                            // Adiciona botão de pausar ou retomar campanhas
+                                            const estaPausada = data.some(c => c.emAndamento === 2); // Verifica se há campanhas pausadas
+
+                                            const textoBotao = estaPausada ? 'Retomar Campanhas' : 'Pausar Campanhas';
+                                            const rotaBotao = estaPausada ? '/resumecampaign' : '/pausecampaign';
+                                            const classeBotao = estaPausada ? 'btn btn-success' : 'btn btn-warning';
+
+                                            const botaoPausarHTML = `
+                                                <div class="text-center mt-2">
+                                                    <button id="btn-toggle-campanhas" class="${classeBotao}">
+                                                        ${textoBotao}
+                                                    </button>
+                                                </div>
+                                            `;
+                                            container.innerHTML += botaoPausarHTML;
+
+                                            // Evento do botão
+                                            document.getElementById('btn-toggle-campanhas').addEventListener('click', () => {
+                                                fetch(rotaBotao, {
+                                                    method: 'POST'
+                                                })
+                                                .then(response => response.text())
+                                                .then(msg => {
+                                                    alert(msg);
+                                                    carregarCampanhas(); // Atualiza a lista
+                                                })
+                                                .catch(error => {
+                                                    console.error('Erro ao alternar campanhas:', error);
+                                                    alert('Erro ao tentar executar a ação. Entre em contato com o suporte.');
+                                                });
+                                            });
+
+
+
+
                                         }
                                     })
                                     .catch(error => {
