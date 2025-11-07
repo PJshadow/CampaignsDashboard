@@ -44,30 +44,34 @@
 
 
                                             // Adds the "Stop Campaigns" button only if there are campaigns
-                                            const botaoHTML = `
-                                                <div class="text-center mt-4">
-                                                    <button id="btn-parar-campanhas" class="btn btn-danger">
-                                                        Parar Campanhas
-                                                    </button>
-                                                </div>
-                                            `;
-                                            container.innerHTML += botaoHTML;
+                                            const campanhasAtivasOuPausadas = data.some(c => c.emAndamento === 1 || c.emAndamento === 2);
+                                            if (campanhasAtivasOuPausadas) {
+                                                // Renderiza botão de parar campanhas
+                                                const botaoHTML = `
+                                                    <div class="text-center mt-4">
+                                                        <button id="btn-parar-campanhas" class="btn btn-danger">
+                                                            Parar Campanhas
+                                                        </button>
+                                                    </div>
+                                                `;
+                                                container.innerHTML += botaoHTML;
 
-                                            // Add event to button
-                                            document.getElementById('btn-parar-campanhas').addEventListener('click', () => {
-                                                fetch('/stopcampaign', {
-                                                    method: 'POST'
-                                                })
-                                                .then(response => response.text())
-                                                .then(msg => {
-                                                    alert(msg);
-                                                    carregarCampanhas(); // Updates the list after stopping
-                                                })
-                                                .catch(error => {
-                                                    console.error('Erro ao parar campanhas:', error);
-                                                    alert('Erro ao tentar parar campanhas. Entre em contato com o suporte.');
+                                                document.getElementById('btn-parar-campanhas').addEventListener('click', () => {
+                                                    fetch('/stopcampaign', {
+                                                        method: 'POST'
+                                                    })
+                                                    .then(response => response.text())
+                                                    .then(msg => {
+                                                        alert(msg);
+                                                        carregarCampanhas();
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('Erro ao parar campanhas:', error);
+                                                        alert('Erro ao tentar parar campanhas. Entre em contato com o suporte.');
+                                                    });
                                                 });
-                                            });
+                                            }
+
 
 
 

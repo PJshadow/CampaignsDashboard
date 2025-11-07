@@ -251,22 +251,23 @@ app.post('/api/enviar-campanha', (req, res) => {
   });
 });
 
-// POST route to stop all active campaigns on N8N
+// POST route to stop all active and paused campaigns on N8N
 app.post('/stopcampaign', (req, res) => {
-  db.query('UPDATE campanhas SET emAndamento = 0 WHERE emAndamento = 1', (err, result) => {
+  db.query('UPDATE campanhas SET emAndamento = 0 WHERE emAndamento IN (1, 2)', (err, result) => {
     if (err) {
       console.error('Erro ao parar campanhas:', err);
       return res.status(500).send('Erro no banco de dados. Entre em contato com o suporte.');
     }
 
     if (result.affectedRows === 0) {
-      return res.send('O comando de parada já foi enviado, pode ser necessário aguardar alguns minutos até o encerramento da campanha.');
+      return res.send('O comando de parada já foi enviado, ou não há campanhas ativas ou pausadas no momento.');
     }
 
     console.log(`O comando de parada de campanha foi executado`);
     res.send(`O comando de parada foi enviado com sucesso! Aguarde alguns minutos até o encerramento da campanha.`);
   });
 });
+
 
 
 
