@@ -18,108 +18,110 @@
                             <p>Carregando campanhas...</p>
                         </div>
                         <script>
+
+
                             function carregarCampanhas() {
-                                fetch('/api/campanhas')
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        const container = document.getElementById('campanhas-container');
-                                        container.innerHTML = '';
+                            fetch('/api/campanhas')
+                                .then(response => response.json())
+                                .then(data => {
+                                    const container = document.getElementById('campanhas-container');
+                                    container.innerHTML = '';
 
-                                        if (data.length === 0) {
-                                            container.innerHTML = '<p>Nenhuma campanha ativa no momento.</p>';
-                                        } else {
-                                            data.forEach(campanha => {
-                                                const bloco = `
-                                                    <div class="campanha">
-                                                        <p><strong>Tipo de Campanha em Andamento:</strong> ${campanha.TipoDeCampanha}</p>
-                                                        <p><strong>Tipo de Lead:</strong> ${campanha.TipoDeLead}</p>
-                                                        <p><strong>Horário de Início:</strong> ${new Date(campanha.Inicio).toLocaleString()}</p>
-                                                        <p><strong>Contatos feitos até o momento:</strong> ${campanha.leadsAlcancados}</p>
-                                                        <p><strong>Local:</strong> ${campanha.Cidade}, ${campanha.estado}</p>
-                                                    </div><br>
-                                                `;
-                                                container.innerHTML += bloco;
-                                            });
+                                    if (data.length === 0) {
+                                        container.innerHTML = '<p>Nenhuma campanha ativa no momento.</p>';
+                                        return;
+                                    }
 
+                                    // Renderiza os blocos de campanhas
+                                    data.forEach(campanha => {
+                                        const bloco = `
+                                            <div class="campanha">
+                                                <p><strong>Tipo de Campanha em Andamento:</strong> ${campanha.TipoDeCampanha}</p>
+                                                <p><strong>Tipo de Lead:</strong> ${campanha.TipoDeLead}</p>
+                                                <p><strong>Horário de Início:</strong> ${new Date(campanha.Inicio).toLocaleString()}</p>
+                                                <p><strong>Contatos feitos até o momento:</strong> ${campanha.leadsAlcancados}</p>
+                                                <p><strong>Local:</strong> ${campanha.Cidade}, ${campanha.estado}</p>
+                                            </div><br>
+                                        `;
+                                        container.insertAdjacentHTML('beforeend', bloco);
+                                    });
 
+                                    // Botão de Parar Campanhas
+                                    const campanhasAtivasOuPausadas = data.some(c => c.emAndamento === 1 || c.emAndamento === 2);
+                                    if (campanhasAtivasOuPausadas) {
+                                        const botaoHTML = `
+                                            <div class="text-center mt-4">
+                                                <button id="btn-parar-campanhas" class="btn btn-danger">
+                                                    Parar Campanhas
+                                                </button>
+                                            </div>
+                                        `;
+                                        container.insertAdjacentHTML('beforeend', botaoHTML);
 
-                                            // Adds the "Stop Campaigns" button only if there are campaigns
-                                            const campanhasAtivasOuPausadas = data.some(c => c.emAndamento === 1 || c.emAndamento === 2);
-                                            if (campanhasAtivasOuPausadas) {
-                                                // Renderiza botão de parar campanhas
-                                                const botaoHTML = `
-                                                    <div class="text-center mt-4">
-                                                        <button id="btn-parar-campanhas" class="btn btn-danger">
-                                                            Parar Campanhas
-                                                        </button>
-                                                    </div>
-                                                `;
-                                                container.innerHTML += botaoHTML;
+                                        // Espera o botão ser inserido no DOM
+                                        setTimeout(() => {
+                                            const btnParar = document.getElementById('btn-parar-campanhas');
+                                            if (btnParar) {
+                                                btnParar.addEventListener('click', () => {
+                                                    fetch('/stopcampaign', { method: 'POST' })
+                                                        .then(response => response.text())
+                                                        .then(msg => {
+                                                            alert(msg);
+                                                            carregarCampanhas();
+                                                        })
+                                                        .catch(error => {
+                                                            console.error('Erro ao parar campanhas:', error);
+                                                            alert('Erro ao tentar parar campanhas. Entre em contato com o suporte.');
+                                                        });
+                                                });
+                                            }
+                                        }, 0);
+                                    }
 
-                                                document.getElementById('btn-parar-campanhas').addEventListener('click', () => {
-                                                    fetch('/stopcampaign', {
-                                                        method: 'POST'
-                                                    })
+                                    // Botão de Pausar ou Retomar Campanhas
+                                    const estaPausada = data.some(c => c.emAndamento === 2);
+                                    const textoBotao = estaPausada ? 'Retomar Campanhas' : 'Pausar Campanhas';
+                                    const rotaBotao = estaPausada ? '/resumecampaign' : '/pausecampaign';
+                                    const classeBotao = estaPausada ? 'btn btn-success' : 'btn btn-warning';
+
+                                    const botaoPausarHTML = `
+                                        <div class="text-center mt-2">
+                                            <button id="btn-toggle-campanhas" class="${classeBotao}">
+                                                ${textoBotao}
+                                            </button>
+                                        </div>
+                                    `;
+                                    container.insertAdjacentHTML('beforeend', botaoPausarHTML);
+
+                                    setTimeout(() => {
+                                        const btnToggle = document.getElementById('btn-toggle-campanhas');
+                                        if (btnToggle) {
+                                            btnToggle.addEventListener('click', () => {
+                                                fetch(rotaBotao, { method: 'POST' })
                                                     .then(response => response.text())
                                                     .then(msg => {
                                                         alert(msg);
                                                         carregarCampanhas();
                                                     })
                                                     .catch(error => {
-                                                        console.error('Erro ao parar campanhas:', error);
-                                                        alert('Erro ao tentar parar campanhas. Entre em contato com o suporte.');
+                                                        console.error('Erro ao alternar campanhas:', error);
+                                                        alert('Erro ao tentar executar a ação. Entre em contato com o suporte.');
                                                     });
-                                                });
-                                            }
-
-
-
-
-                                            // Adiciona botão de pausar ou retomar campanhas
-                                            const estaPausada = data.some(c => c.emAndamento === 2); // Verifica se há campanhas pausadas
-
-                                            const textoBotao = estaPausada ? 'Retomar Campanhas' : 'Pausar Campanhas';
-                                            const rotaBotao = estaPausada ? '/resumecampaign' : '/pausecampaign';
-                                            const classeBotao = estaPausada ? 'btn btn-success' : 'btn btn-warning';
-
-                                            const botaoPausarHTML = `
-                                                <div class="text-center mt-2">
-                                                    <button id="btn-toggle-campanhas" class="${classeBotao}">
-                                                        ${textoBotao}
-                                                    </button>
-                                                </div>
-                                            `;
-                                            container.innerHTML += botaoPausarHTML;
-
-                                            // Evento do botão
-                                            document.getElementById('btn-toggle-campanhas').addEventListener('click', () => {
-                                                fetch(rotaBotao, {
-                                                    method: 'POST'
-                                                })
-                                                .then(response => response.text())
-                                                .then(msg => {
-                                                    alert(msg);
-                                                    carregarCampanhas(); // Atualiza a lista
-                                                })
-                                                .catch(error => {
-                                                    console.error('Erro ao alternar campanhas:', error);
-                                                    alert('Erro ao tentar executar a ação. Entre em contato com o suporte.');
-                                                });
                                             });
-
-
-
-
                                         }
-                                    })
-                                    .catch(error => {
-                                        console.error('Erro ao carregar campanhas:', error);
-                                        container.innerHTML = '<p>Erro ao carregar campanhas. Entre em contato com o suporte.</p>';
-                                    });
-                            }
+                                    }, 0);
+                                })
+                                .catch(error => {
+                                    console.error('Erro ao carregar campanhas:', error);
+                                    container.innerHTML = '<p>Erro ao carregar campanhas. Entre em contato com o suporte.</p>';
+                                });
+                        }
 
-                            setInterval(carregarCampanhas, 5000);
-                            carregarCampanhas();
+                        setInterval(carregarCampanhas, 5000);
+                        carregarCampanhas();
+                            
+
+
                         </script>   
                     </div>
                 </div>
