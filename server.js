@@ -308,7 +308,7 @@ app.post('/resumecampaign', (req, res) => {
 
 // Route to update information to show active campaigns
 app.get('/api/campanhas', isAuthenticated, (req, res) => {
-  const sql = "SELECT * FROM campanhas WHERE emAndamento = 1";
+  const sql = "SELECT * FROM campanhas WHERE emAndamento IN (1, 2)";
   db.query(sql, (err, result) => {
     if (err) return res.status(500).json({ error: 'Erro ao buscar campanhas' });
     res.json(result);
