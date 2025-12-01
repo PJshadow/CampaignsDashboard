@@ -210,16 +210,16 @@ app.get('/logout', (req, res) => {
 
 // POST route to start campaign on N8N
 app.post('/api/enviar-campanha', (req, res) => {
-  const { tipoEmpresa, estado, cidade, baseText } = req.body;
+  const { tipoEmpresa, estado, cidade, baseText } = req.body; // Captura os dados do formulário
 
-  db.query('SELECT COUNT(*) AS total FROM campanhas WHERE emAndamento = 1', (err, results) => {
+  db.query('SELECT COUNT(*) AS total FROM campanhas WHERE emAndamento = 1 OR emAndamento = 2', (err, results) => {
     if (err) {
       console.error('Erro ao consultar o banco de dados:', err.message);
       return res.redirect('/prospection-error');
     }
 
     const campanhasAtivas = results[0].total;
-    const limiteCampanhas = parseInt(process.env.NUMBER_OF_CAMPAIGNS, 10);
+    const limiteCampanhas = parseInt(process.env.NUMBER_OF_CAMPAIGNS, 10); // Converte para inteiro, 10 é o radix
 
     if (campanhasAtivas >= limiteCampanhas) {
       console.warn(`Limite de ${limiteCampanhas} campanhas simultâneas atingido.`);
